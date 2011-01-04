@@ -8,7 +8,7 @@
  *
  *  A library for poker logic
  */
-(function( global, doc, _, undef ) {
+(function ( global, doc, _, undef ) {
   // The suit object contains the possible suits
   var s = "",
   
@@ -106,12 +106,12 @@
   })( HAND_KEYS ),
   */
   UTIL = {
-    hashHand : function( hand, key ) {
+    hashHand : function ( hand, key ) {
       var hash = {};
       key = key || 'value';
 
       // Go through each card and match up values
-      _( hand.cards ).each(function( card ) {
+      _( hand.cards ).each(function ( card ) {
         if ( hash[ card[ key ] ] ) {
           // Add the card to the array
           hash[ card[ key ] ].push( card );
@@ -125,12 +125,14 @@
       // Return the hash
       return hash;
     },
+
     orderCards : function ( cards, aceLow ) {
       var self = this;
-      return _( cards ).sortBy(function( card ) {
+      return _( cards ).sortBy(function ( card ) {
         return self.getCardOrderIndex( card, aceLow );
       });
     },
+
     getCardOrderIndex : function ( card, aceLow ) {
       // Special case
       if ( aceLow && card.value === 'A') {
@@ -142,7 +144,7 @@
   },
 
   HAND_IDENTITY = {
-    "straight_flush"  : function( hand ) {
+    "straight_flush"  : function ( hand ) {
       // First check if it's a straight
       if ( this.straight( hand ) ) {
         // If so return the value of the flush function
@@ -152,7 +154,7 @@
       return false;
     },
 
-    "four_of_a_kind"  : function( hand ) {
+    "four_of_a_kind"  : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'value' ), 
           res  = false;
 
@@ -167,7 +169,7 @@
       return res;
     },
 
-    "full_house"      : function( hand ) {
+    "full_house"      : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'value' ), 
           res2,
           res3;
@@ -194,7 +196,7 @@
       return false;
     },
 
-    "flush"           : function( hand ) {
+    "flush"           : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'suit' ),
           res  = false;
 
@@ -207,7 +209,7 @@
       return res;
     },
 
-    "straight"        : function( hand ) {
+    "straight"        : function ( hand ) {
       var findStraight = function ( cards, aceLow ) {
         // Find first location
         var pre = UTIL.getCardOrderIndex( cards[ 0 ], aceLow ) - 1,
@@ -242,7 +244,7 @@
       return findStraight( hand.cards );
     },
 
-    "three_of_a_kind" : function( hand ) {
+    "three_of_a_kind" : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'value' ), 
           res = false;
 
@@ -258,7 +260,7 @@
       return res;
     },
 
-    "two_pair"        : function( hand ) {
+    "two_pair"        : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'value' ), 
           res1,
           res2;
@@ -286,7 +288,7 @@
       return false;
     },
 
-    "one_pair"        : function( hand ) {
+    "one_pair"        : function ( hand ) {
       var hash = UTIL.hashHand( hand, 'value' ), 
       res = false;
 
@@ -311,7 +313,8 @@
       // Otherwise return false
       return res;
     },
-    "high_card"       : function( hand ) {
+
+    "high_card"       : function ( hand ) {
         return hand.cards[4];
     }
   },
@@ -319,7 +322,7 @@
   // The card object represents a single card
   // which makes a up a hand.
   Card  = {
-    init : function( value, suit ) {
+    init : function ( value, suit ) {
       // Normalize the values and set them
       this.value     = C_NORMAL[ value + s ];
       this.suit      = SUIT[ suit.toLowerCase() ];
@@ -328,6 +331,7 @@
   },
   
   Hand = {
+
     init : function ( cards ) {
       //>>debugStart
       if ( cards.length !== 5 ) {
@@ -339,28 +343,37 @@
 
       return this;
     },
+
     identify : function () {
       var i = HAND_KEYS.length,
-          handVal;
+          handVal,
+          res;
 
       // Go through backwards and find the first fit
       while ( !handVal && i-- ) {
         handVal = HAND_IDENTITY[ HAND_KEYS[ i ] ]( this ); 
       }
 
-      return {
+      res = {
         type  : HAND_KEYS[ i ],
         rank  : i,
         cards : handVal,
         name  : PRETTY_HANDS[ HAND_KEYS[ i ] ]
       };
+
+      // Memoize Me!
+      this.identify = function () {
+        return res;
+      };
+
+      return res;
     }
   };
 
   // Expose the gaga library
   global.gaga = {
     // Takes to strings
-    createCard : function( value, suit ) {
+    createCard : function ( value, suit ) {
       //>>debugStart
       // Check for validity
       if ( !value || !suit ) {
@@ -374,7 +387,7 @@
     },
 
     // Takes an array of array pairs or Card objects
-    createHand : function( cards ) {
+    createHand : function ( cards ) {
       var self    = this,
           cardArr = [];
 
@@ -382,7 +395,7 @@
       if ( _.isArray( cards ) && cards.length ) {
 
         // Go through each card in the array
-        _( cards ).each(function( card ) {
+        _( cards ).each(function ( card ) {
 
           // If the card is an array, create a card
           if ( _.isArray( card ) ) {
@@ -394,10 +407,10 @@
             //>>debugEnd
 
             // Create a new card object
-            card = self.createCard.apply(this, card);
+            card = self.createCard.apply( this, card );
 
             // Build up an array of card objects
-            cardArr.push(card);
+            cardArr.push( card );
           }
 
         });
@@ -412,6 +425,29 @@
         throw new Exception( 'createHand: `cards` is not an array.' );
       }
       //>>debugEnd
+    },
+
+    // Since there can be ties, this is a comparator function, you do what you want after that
+    // if h1 is less than h2    -> return -1
+    // if h1 is equal to h2     -> return 0
+    // if h1 is greater than h2 -> return 1
+    compareHands: function ( hand1, hand2 ) {
+      var hident1 = hand1.identify(),
+          hident2 = hand2.identify();
+
+      // Handle initial tie
+      if ( hident1.rank === hident2.rank ) {
+        // Run logic on matching hand types, but different values.
+        //TODO:: write this logic
+        // Otherwise they really are a tie
+        return 0;
+      }
+      // Handle each being greater than the other
+      else if ( hident1.rank > hident2.rank ) {
+        return 1;
+      }
+      // The only other option
+      return -1;
     }
   };
 })(this, this.document, this._);
