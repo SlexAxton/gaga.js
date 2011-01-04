@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang=en>
+<head>
+  <meta charset=utf-8 />
+  <title>WTFlop Testing Static Page</title>
+</head>
+<body>
+  gaga.js tests - check your console.
+  <script src="/tests/js/jquery.min.js"></script>
+  <script src="/tests/js/underscore.min.js"></script>
+  <script src="/gaga.js"></script>
+  <script>
+    (function() {
+      var high_card = gaga.createHand([
+        [2, 'spades'],
+        [3, 'clubs'],
+        [4, 'diamonds'],
+        [5, 'clubs'],
+        [7, 'diamonds']
+      ]);
+      var hcid = high_card.identify();
+      console.log(hcid.type === 'high_card', hcid);
+
+      var one_pair = gaga.createHand([
+        [2, 'spades'],
+        [5, 'clubs'],
+        [4, 'diamonds'],
+        [3, 'clubs'],
+        [3, 'diamonds']
+      ]);
+      var opid = one_pair.identify();
+      console.log(opid.type === 'one_pair', opid);
+
+      var two_pair = gaga.createHand([
+        [2, 'spades'],
+        [2, 'clubs'],
+        [6, 'diamonds'],
+        [3, 'clubs'],
+        [3, 'diamonds']
+      ]);
+      var tpid = two_pair.identify();
+      console.log(tpid.type === 'two_pair', tpid);
+
+      var three_of_a_kind = gaga.createHand([
+        [2, 'spades'],
+        [2, 'clubs'],
+        [2, 'diamonds'],
+        [5, 'clubs'],
+        [3, 'diamonds']
+      ]);
+      var toakid = three_of_a_kind.identify();
+      console.log(toakid.type === 'three_of_a_kind', toakid);
+      
+      var straight = gaga.createHand([
+        ['A', 'spades'],
+        [2, 'clubs'],
+        [3, 'diamonds'],
+        [4, 'clubs'],
+        [5, 'diamonds']
+      ]);
+      var sid = straight.identify();
+      console.log(sid.type === 'straight', sid);
+      
+      var flush = gaga.createHand([
+        ['A', 'clubs'],
+        [4, 'clubs'],
+        [5, 'c'],
+        ['6', 'clubs'],
+        [3, 'clubs']
+      ]);
+      var fid = flush.identify();
+      console.log(fid.type === 'flush', fid);
+      
+      var full_house = gaga.createHand([
+        [2, 'spades'],
+        [2, 'clubs'],
+        [2, 'diamonds'],
+        [3, 'clubs'],
+        [3, 'diamonds']
+      ]);
+      var fhid = full_house.identify();
+      console.log(fhid.type === 'full_house', fhid);
+      
+      var four_of_a_kind = gaga.createHand([
+        [2, 'spades'],
+        [2, 'clubs'],
+        [2, 'diamonds'],
+        [2, 'hearts'],
+        [3, 'diamonds']
+      ]);
+      var foakid = four_of_a_kind.identify();
+      console.log(foakid.type === 'four_of_a_kind', foakid);
+      
+      var straight_flush = gaga.createHand([
+        ['T', 'clubs'],
+        ['J', 'clubs'],
+        ['Q', 'clubs'],
+        ['K', 'clubs'],
+        ['A', 'clubs']
+      ]);
+      var sfid = straight_flush.identify();
+      console.log(sfid.type === 'straight_flush', sfid);
+
+    })();
+  </script>
+</body>
+</html>

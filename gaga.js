@@ -1,0 +1,417 @@
+/**
+ *  gaga.js
+ *  by Alex Sexton
+ *
+ //>>debugStart
+ * Debug mode: On
+ //>>debugEnd
+ *
+ *  A library for poker logic
+ */
+(function( global, doc, $, _, undef ) {
+  // The suit object contains the possible suits
+  var s = "",
+  
+  //>>debugStart
+  // Please jslint
+  Exception = global.Exception,
+  //>>debugEnd
+
+  SUIT = {
+   "diamonds" : "diamonds",
+   "d"        : "diamonds",
+   "spades"   : "spades",
+   "s"        : "spades",
+   "hearts"   : "hearts",
+   "h"        : "hearts",
+   "clubs"    : "clubs",
+   "c"        : "clubs"
+  },
+
+  // Card Value Normalization
+  C_NORMAL = {
+    '1'  : 'A',
+    '2'  : '2',
+    '3'  : '3',
+    '4'  : '4',
+    '5'  : '5',
+    '6'  : '6',
+    '7'  : '7',
+    '8'  : '8',
+    '9'  : '9',
+    'T'  : 'T',
+    '10' : 'T',
+    '11' : 'J',
+    'J'  : 'J',
+    '12' : 'Q',
+    'Q'  : 'Q',
+    '13' : 'K',
+    'K'  : 'K',
+    '14' : 'A',
+    'A'  : 'A'
+  },
+
+  CARD_KEYS = [
+    "", // so the indexes match up a little more nicely.
+    "A", "2", "3", "4", "5", "6", "7", 
+    "8", "9", "T", "J", "Q", "K", "A"
+  ],
+
+  CARD_ORDER = (function ( ks ) {
+    var hash = {};
+
+    // This automatically sets Ace as high.
+    // So that needs to be taken into account
+    // later.
+    _( ks ).each(function ( k, i ) {
+      hash[k] = i;
+    });
+
+    return hash;
+  })( CARD_KEYS ),
+
+  HAND_KEYS = [
+    "high_card",
+    "one_pair",
+    "two_pair",
+    "three_of_a_kind",
+    "straight",
+    "flush",
+    "full_house",
+    "four_of_a_kind",
+    "straight_flush"
+  ],
+
+  PRETTY_HANDS = {
+    "high_card"       : "High Card",
+    "one_pair"        : "One Pair",
+    "two_pair"        : "Two Pair",
+    "three_of_a_kind" : "Three of a Kind",
+    "straight"        : "Straight",
+    "flush"           : "Flush",
+    "full_house"      : "Full House",
+    "four_of_a_kind"  : "Four of a Kind",
+    "straight_flush"  : "Straight Flush"
+  },
+
+  /* Not using this... so leave it around in case i might  
+  // Hands and their ranks
+  HAND_VALUES = (function ( ks ) {
+    var hash = {};
+    // Set each one, the other direction
+    _( ks ).each(function ( k, i ) {
+      hash[ k ] = i;
+    });
+    return hash;
+  })( HAND_KEYS ),
+  */
+  UTIL = {
+    hashHand : function( hand, key ) {
+      var hash = {};
+      key = key || 'value';
+
+      // Go through each card and match up values
+      _( hand.cards ).each(function( card ) {
+        if ( hash[ card[ key ] ] ) {
+          // Add the card to the array
+          hash[ card[ key ] ].push( card );
+        }
+        else {
+          // Create the array and add the inital
+          hash[ card[ key ] ] = [ card ];
+        }
+      });
+
+      // Return the hash
+      return hash;
+    },
+    orderCards : function ( cards, aceLow ) {
+      var self = this;
+      return _( cards ).sortBy(function( card ) {
+        return self.getCardOrderIndex( card, aceLow );
+      });
+    },
+    getCardOrderIndex : function ( card, aceLow ) {
+      // Special case
+      if ( aceLow && card.value === 'A') {
+        return 1;
+      }
+      // Hashed order
+      return CARD_ORDER[ card.value ];
+    }
+  },
+
+  HAND_IDENTITY = {
+    "straight_flush"  : function( hand ) {
+      // First check if it's a straight
+      if ( this.straight( hand ) ) {
+        // If so return the value of the flush function
+        return this.flush( hand );
+      }
+      // Otherwise return false
+      return false;
+    },
+
+    "four_of_a_kind"  : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'value' ), 
+          res  = false;
+
+      // See if any of the items are of length four
+      _( hash ).each(function ( val ) {
+        // If any have 4 cards in the array, that's it
+        if ( val.length == 4 ) {
+          res = val;
+        }
+      });
+      // This is either an array of cards or false
+      return res;
+    },
+
+    "full_house"      : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'value' ), 
+          res2,
+          res3;
+
+      // This could use pair and toak, but this'll be quicker...
+      // See if any of the items are of length 3 and 2
+      _( hash ).each(function ( val ) {
+        // If any have 3 cards in the array, that's one
+        if ( val.length == 3 ) {
+          res3 = val;
+        }
+        // Any with 2 is the other
+        else if ( val.length == 2 ) {
+          // May override in the case of 2 pair, but no matter
+          res2 = val;
+        }
+      });
+
+      // See if both exist
+      if ( res2 && res3 ) {
+        return _.flatten( [ res2, res3 ] );
+      }
+      // Otherwise return false
+      return false;
+    },
+
+    "flush"           : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'suit' ),
+          res  = false;
+
+      _( hash ).each(function ( val ) {
+        if ( val.length == 5 ) {
+          res = val;
+        }
+      });
+
+      return res;
+    },
+
+    "straight"        : function( hand ) {
+      var findStraight = function ( cards, aceLow ) {
+        // Find first location
+        var pre = UTIL.getCardOrderIndex( cards[ 0 ], aceLow ) - 1,
+            res = cards;
+
+        // See if they're in direct order sequence
+        _( cards ).each(function ( card ) {
+          // Shortcut if we've already figured out a non-straight
+          if ( res ) {
+            // Get the order index of this one
+            var cur = UTIL.getCardOrderIndex( card, aceLow );
+
+            // The difference should be 1
+            if ( (cur - pre) !== 1 ) {
+              res = false;
+            }
+
+            // Move the current to the previous
+            pre = cur;
+          }
+        });
+
+        return res;
+      };
+
+      // Don't do more work than we have to
+      if ( hand.cardsAceLow[ 0 ].value === 'A' ) {
+        // Since we have an ace, try both ways
+        return findStraight( hand.cards ) || findStraight( hand.cardsAceLow, 1 );
+      }
+      // Just try one way
+      return findStraight( hand.cards );
+    },
+
+    "three_of_a_kind" : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'value' ), 
+          res = false;
+
+      // See if any of the items are of length 3
+      _( hash ).each(function ( val ) {
+        // If any have 3 cards in the array, that's it
+        if ( val.length >= 3 ) {
+          res = val.slice( 0, 3 );
+        }
+      });
+
+      // Otherwise return false
+      return res;
+    },
+
+    "two_pair"        : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'value' ), 
+          res1,
+          res2;
+
+      // See if any of the items are of 2 
+      _( hash ).each(function ( val ) {
+        // Find two sets of two
+        if ( val.length >= 2 ) {
+          if ( !res1 ) {
+            res1 = val.slice( 0, 2 );
+          }
+          else {
+            // No need to check against res1, since they're unique
+            res2 = val.slice( 0, 2 );
+          }
+        }
+      });
+
+      // See if both exist
+      if ( res1 && res2 ) {
+        return _.flatten( [ res1, res2 ] );
+      }
+
+      // Otherwise return false
+      return false;
+    },
+
+    "one_pair"        : function( hand ) {
+      var hash = UTIL.hashHand( hand, 'value' ), 
+      res = false;
+
+      // See if any of the items are of length 2
+      _( hash ).each(function ( val, key ) {
+        // If any have 2 cards in the array, that's it
+        if ( val.length >= 2 ) {
+          if ( res ) {
+            // If the new one is higher than the last
+            // Aces are always high in this case
+            if ( UTIL.getCardOrderIndex( res[ 0 ].value ) < UTIL.getCardOrderIndex( key ) ) {
+              res = val.slice( 0, 2 );
+            }
+          }
+          else {
+            res = val.slice( 0, 2 );
+          }
+        }
+      });
+
+      // Will return the highest pair
+      // Otherwise return false
+      return res;
+    },
+    "high_card"       : function( hand ) {
+        return hand.cards[4];
+    }
+  },
+
+  // The card object represents a single card
+  // which makes a up a hand.
+  Card  = {
+    init : function( value, suit ) {
+      // Normalize the values and set them
+      this.value     = C_NORMAL[ value + s ];
+      this.suit      = SUIT[ suit.toLowerCase() ];
+      return this;
+    }
+  },
+  
+  Hand = {
+    init : function ( cards ) {
+      //>>debugStart
+      if ( cards.length !== 5 ) {
+        throw new Exception( 'A hand must have 5 cards to use that operation. (You have: ' + cards.length + ')' );
+      }
+      //>>debugEnd
+      this.cards       = UTIL.orderCards(cards);
+      this.cardsAceLow = UTIL.orderCards(cards, 1);
+
+      return this;
+    },
+    identify : function () {
+      var i = HAND_KEYS.length,
+          handVal;
+
+      // Go through backwards and find the first fit
+      while ( !handVal && i-- ) {
+        handVal = HAND_IDENTITY[ HAND_KEYS[ i ] ]( this ); 
+      }
+
+      return {
+        type  : HAND_KEYS[ i ],
+        rank  : i,
+        cards : handVal,
+        name  : PRETTY_HANDS[ HAND_KEYS[ i ] ]
+      };
+    }
+  };
+
+  // Expose the gaga library
+  global.gaga = {
+    // Takes to strings
+    createCard : function( value, suit ) {
+      //>>debugStart
+      // Check for validity
+      if ( !value || !suit ) {
+        // Throw an exception if it's invalid
+        throw new Exception( 'createCard: Value or Suit not valid. Value: `' + value + '` | Suit: `' + suit + '`' );
+      }
+      //>>debugEnd
+
+      // Return a new instance
+      return Object.create( Card ).init( value, suit );
+    },
+
+    // Takes an array of array pairs or Card objects
+    createHand : function( cards ) {
+      var self    = this,
+          cardArr = [];
+
+      // Make sure that we have an array with values
+      if ( _.isArray( cards ) && cards.length ) {
+
+        // Go through each card in the array
+        _( cards ).each(function( card ) {
+
+          // If the card is an array, create a card
+          if ( _.isArray( card ) ) {
+            //>>debugStart
+            // Make sure our array seems right
+            if ( card.length != 2 ) {
+              throw new Exception( 'createHand: Individual card array has incorrect length (!2): ' + card.length );
+            }
+            //>>debugEnd
+
+            // Create a new card object
+            card = self.createCard.apply(this, card);
+
+            // Build up an array of card objects
+            cardArr.push(card);
+          }
+
+        });
+
+        // Create a Hand object and return it
+        return Object.create( Hand ).init( cardArr );
+      }
+
+      //>>debugStart
+      // Throw an error if input is bad
+      else {
+        throw new Exception( 'createHand: `cards` is not an array.' );
+      }
+      //>>debugEnd
+    }
+  };
+})(this, this.document, this.jQuery, this._);
