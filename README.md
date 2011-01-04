@@ -2,6 +2,8 @@ A Helper library for creating card and hand objects and evaluating their worth.
 
 Still very early development.
 
+Requires: Underscore.js
+
 More to come with:
 
 - Direct Hand Comparison
