@@ -8,7 +8,7 @@
  *
  *  A library for poker logic
  */
-(function( global, doc, $, _, undef ) {
+(function( global, doc, _, undef ) {
   // The suit object contains the possible suits
   var s = "",
   
@@ -414,4 +414,4 @@
       //>>debugEnd
     }
   };
-})(this, this.document, this.jQuery, this._);
+})(this, this.document, this._);
