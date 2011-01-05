@@ -140,6 +140,23 @@
       }
       // Hashed order
       return CARD_ORDER[ card.value ];
+    },
+
+    // Finds the set with the highest unique card
+    // must be the same length arrays.
+    reverseCompare : function ( cards1, cards2 ) {
+      var i = cards1.length;
+
+      while ( i-- ) {
+        if ( cards1[ i ].value > cards2[ i ] ) {
+          return 1;
+        }
+        else if ( cards1[ i ] < cards2[ i ] ) {
+          return -1;
+        }
+      }
+
+      return 0;
     }
   },
 
@@ -320,19 +337,10 @@
   },
 
   // Functions to compare equal hands - comparator style
+  // assumes ordered cards (which is why it takes hands)
   COMPARE_SELF = {
     "high_card"       : function ( h1, h2 ) {
-      var h1c = h1.cards[ 4 ].value,
-          h2c = h2.cards[ 4 ].value;
-
-      if ( h1c > h2c ) {
-        return 1;
-      }
-      else if ( h1c < h2c ) {
-        return -1;
-      }
-      // Real tie
-      return 0;
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "one_pair"        : function ( h1, h2 ) {
@@ -353,56 +361,115 @@
       // Loop through the ordered cards backwards
       // The first non equal index is a diff we can
       // use for a winner
-      h1c = h1.cards;
-      h2c = h2.cards;
-
-      while ( i-- ) {
-        if ( h1c[ i ] > h2c[ i ] ) {
-          return 1;
-        }
-        else if ( h1c[ i ] < h2c[ i ] ) {
-          return -1;
-        }
-      }
-
-      // If by this time we don't have a match
-      // it's a tie.
-      return 0;
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "two_pair"        : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      var h1c = h1.identify().cards,
+          h2c = h2.identify().cards,
+          valFunc = function ( card ) {
+            return card.value;
+          },
+          h1c_1 = _.max( h1c, valFunc ).value,
+          h1c_2 = _.min( h1c, valFunc ).value,
+          h2c_1 = _.max( h2c, valFunc ).value,
+          h2c_2 = _.min( h2c, valFunc ).value;
+
+      if ( h1c_1 > h2c_1 ) {
+        return 1;
+      }
+      else if ( h1c_1 < h2c_1 ) {
+        return -1;
+      }
+      else if ( h1c_2 > h2c_2 ) {
+        return 1;
+      }
+      else if ( h1c_2 < h2c_2 ) {
+        return -1;
+      }
     },
 
     "three_of_a_kind" : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      var h1c = h1.identify().cards[0].value,
+          h2c = h2.identify().cards[0].value;
+
+      if ( h1c > h2c ) {
+        return 1;
+      }
+      else if ( h1c < h2c ) {
+        return -1;
+      }
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "straight"        : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "flush"           : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "full_house"      : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      var h1c = UTIL.hashHand( h1, 'value' ),
+          h2c = UTIL.hashHand( h2, 'value' ),
+          h1c_2,
+          h1c_3,
+          h2c_2,
+          h2c_3;
+
+      // The threes are more important than the twos.
+      // find them.
+      _( h1c ).each(function ( cards, val ) {
+        if ( cards.length === 3 ) {
+          h1c_3 = val;
+        }
+        else if ( cards.length === 2 ) {
+          h1c_2 = val;
+        }
+      });
+      
+      _( h2c ).each(function ( cards, val ) {
+        if ( cards.length === 3 ) {
+          h2c_3 = val;
+        }
+        else if ( cards.length === 2 ) {
+          h2c_2 = val;
+        }
+      });
+
+      // Check 3s then 2s then tie.
+      if ( h1c_3 > h2c_3 ) {
+        return 1;
+      }
+      else if ( h1c_3 < h2c_3 ) {
+        return -1;
+      }
+      else if ( h1c_2 > h2c_2 ) {
+        return 1;
+      }
+      else if ( h1c_2 < h2c_2 ) {
+        return -1;
+      }
+
+      return 0;
     },
 
     "four_of_a_kind"  : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      var h1c = h1.identify().cards[0].value,
+          h2c = h2.identify().cards[0].value;
+      
+      if ( h1c > h2c ) {
+        return 1;
+      }
+      else if ( h1c < h2c ) {
+        return -1;
+      }
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     },
 
     "straight_flush"  : function ( h1, h2 ) {
-      var h1c = h1.cards,
-          h2c = h2.cards;
+      return UTIL.reverseCompare( h1.cards, h2.cards );
     }
   },
 
