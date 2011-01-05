@@ -319,6 +319,93 @@
     }
   },
 
+  // Functions to compare equal hands - comparator style
+  COMPARE_SELF = {
+    "high_card"       : function ( h1, h2 ) {
+      var h1c = h1.cards[ 4 ].value,
+          h2c = h2.cards[ 4 ].value;
+
+      if ( h1c > h2c ) {
+        return 1;
+      }
+      else if ( h1c < h2c ) {
+        return -1;
+      }
+      // Real tie
+      return 0;
+    },
+
+    "one_pair"        : function ( h1, h2 ) {
+      var i   = 4,
+          res = 0,
+          h1c = h1.identify().cards[ 0 ].value,
+          h2c = h2.identify().cards[ 0 ].value;
+
+
+      // First check the value of the pairs
+      if ( h1c > h2c ) {
+        return 1;
+      }
+      else if ( h1c < h2c ) {
+        return -1;
+      }
+
+      // Loop through the ordered cards backwards
+      // The first non equal index is a diff we can
+      // use for a winner
+      h1c = h1.cards;
+      h2c = h2.cards;
+
+      while ( i-- ) {
+        if ( h1c[ i ] > h2c[ i ] ) {
+          return 1;
+        }
+        else if ( h1c[ i ] < h2c[ i ] ) {
+          return -1;
+        }
+      }
+
+      // If by this time we don't have a match
+      // it's a tie.
+      return 0;
+    },
+
+    "two_pair"        : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "three_of_a_kind" : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "straight"        : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "flush"           : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "full_house"      : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "four_of_a_kind"  : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    },
+
+    "straight_flush"  : function ( h1, h2 ) {
+      var h1c = h1.cards,
+          h2c = h2.cards;
+    }
+  },
+
   // The card object represents a single card
   // which makes a up a hand.
   Card  = {
@@ -438,9 +525,7 @@
       // Handle initial tie
       if ( hident1.rank === hident2.rank ) {
         // Run logic on matching hand types, but different values.
-        //TODO:: write this logic
-        // Otherwise they really are a tie
-        return 0;
+        return COMPARE_SELF[ hident1.type ]( hand1, hand2 );
       }
       // Handle each being greater than the other
       else if ( hident1.rank > hident2.rank ) {
