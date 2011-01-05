@@ -344,11 +344,8 @@
     },
 
     "one_pair"        : function ( h1, h2 ) {
-      var i   = 4,
-          res = 0,
-          h1c = h1.identify().cards[ 0 ].value,
+      var h1c = h1.identify().cards[ 0 ].value,
           h2c = h2.identify().cards[ 0 ].value;
-
 
       // First check the value of the pairs
       if ( h1c > h2c ) {
@@ -390,8 +387,8 @@
     },
 
     "three_of_a_kind" : function ( h1, h2 ) {
-      var h1c = h1.identify().cards[0].value,
-          h2c = h2.identify().cards[0].value;
+      var h1c = h1.identify().cards[ 0 ].value,
+          h2c = h2.identify().cards[ 0 ].value;
 
       if ( h1c > h2c ) {
         return 1;
@@ -456,8 +453,8 @@
     },
 
     "four_of_a_kind"  : function ( h1, h2 ) {
-      var h1c = h1.identify().cards[0].value,
-          h2c = h2.identify().cards[0].value;
+      var h1c = h1.identify().cards[ 0 ].value,
+          h2c = h2.identify().cards[ 0 ].value;
       
       if ( h1c > h2c ) {
         return 1;
