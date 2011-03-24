@@ -148,10 +148,10 @@
       var i = cards1.length;
 
       while ( i-- ) {
-        if ( cards1[ i ].value > cards2[ i ] ) {
+        if ( cards1[ i ].value > cards2[ i ].value ) {
           return 1;
         }
-        else if ( cards1[ i ] < cards2[ i ] ) {
+        else if ( cards1[ i ].value < cards2[ i ].value ) {
           return -1;
         }
       }
