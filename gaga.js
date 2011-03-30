@@ -148,10 +148,10 @@
       var i = cards1.length;
 
       while ( i-- ) {
-        if ( cards1[ i ].value > cards2[ i ].value ) {
+        if ( cards1[ i ]._value > cards2[ i ]._value ) {
           return 1;
         }
-        else if ( cards1[ i ].value < cards2[ i ].value ) {
+        else if ( cards1[ i ]._value < cards2[ i ]._value ) {
           return -1;
         }
       }
@@ -316,7 +316,7 @@
           if ( res ) {
             // If the new one is higher than the last
             // Aces are always high in this case
-            if ( UTIL.getCardOrderIndex( res[ 0 ].value ) < UTIL.getCardOrderIndex( key ) ) {
+            if ( res[ 0 ]._value < UTIL.getCardOrderIndex( key ) ) {
               res = val.slice( 0, 2 );
             }
           }
@@ -344,8 +344,8 @@
     },
 
     "one_pair"        : function ( h1, h2 ) {
-      var h1c = h1.identify().cards[ 0 ].value,
-          h2c = h2.identify().cards[ 0 ].value;
+      var h1c = h1.identify().cards[ 0 ]._value,
+          h2c = h2.identify().cards[ 0 ]._value;
 
       // First check the value of the pairs
       if ( h1c > h2c ) {
@@ -365,12 +365,12 @@
       var h1c = h1.identify().cards,
           h2c = h2.identify().cards,
           valFunc = function ( card ) {
-            return card.value;
+            return card._value;
           },
-          h1c_1 = _.max( h1c, valFunc ).value,
-          h1c_2 = _.min( h1c, valFunc ).value,
-          h2c_1 = _.max( h2c, valFunc ).value,
-          h2c_2 = _.min( h2c, valFunc ).value;
+          h1c_1 = _.max( h1c, valFunc )._value,
+          h1c_2 = _.min( h1c, valFunc )._value,
+          h2c_1 = _.max( h2c, valFunc )._value,
+          h2c_2 = _.min( h2c, valFunc )._value;
 
       if ( h1c_1 > h2c_1 ) {
         return 1;
@@ -387,8 +387,8 @@
     },
 
     "three_of_a_kind" : function ( h1, h2 ) {
-      var h1c = h1.identify().cards[ 0 ].value,
-          h2c = h2.identify().cards[ 0 ].value;
+      var h1c = h1.identify().cards[ 0 ]._value,
+          h2c = h2.identify().cards[ 0 ]._value;
 
       if ( h1c > h2c ) {
         return 1;
@@ -453,8 +453,8 @@
     },
 
     "four_of_a_kind"  : function ( h1, h2 ) {
-      var h1c = h1.identify().cards[ 0 ].value,
-          h2c = h2.identify().cards[ 0 ].value;
+      var h1c = h1.identify().cards[ 0 ]._value,
+          h2c = h2.identify().cards[ 0 ]._value;
       
       if ( h1c > h2c ) {
         return 1;
@@ -476,6 +476,7 @@
     init : function ( value, suit ) {
       // Normalize the values and set them
       this.value     = C_NORMAL[ value + s ];
+      this._value    = CARD_ORDER [ C_NORMAL[ value + s ] ];
       this.suit      = SUIT[ suit.toLowerCase() ];
       return this;
     }

@@ -100,6 +100,28 @@
       var sfid = straight_flush.identify();
       console.log(sfid.type === 'straight_flush', sfid);
 
+      // =============================
+      // Test other hand comparison
+
+      // high card
+      console.log(
+        ((gaga.compareHands(
+          gaga.createHand([
+            [1, 'c'],
+            [3, 'd'],
+            [4, 'h'],
+            [9, 's'],
+            [6, 's']
+          ]),
+          gaga.createHand([
+            ['T', 'h'],
+            [2, 'd'],
+            [5, 's'],
+            [3, 'c'],
+            ['K', 's']
+          ]) 
+        ) === -1) ? 'h1' : 'h2') === 'h2'
+      );
     })();
   </script>
 </body>
