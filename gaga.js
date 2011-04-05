@@ -384,6 +384,7 @@
       else if ( h1c_2 < h2c_2 ) {
         return -1;
       }
+      return UTIL.reverseCompare( h1c, h2c );
     },
 
     "three_of_a_kind" : function ( h1, h2 ) {
@@ -419,19 +420,19 @@
       // find them.
       _( h1c ).each(function ( cards, val ) {
         if ( cards.length === 3 ) {
-          h1c_3 = val;
+          h1c_3 = UTIL.getCardOrderIndex( val );
         }
         else if ( cards.length === 2 ) {
-          h1c_2 = val;
+          h1c_2 = UTIL.getCardOrderIndex( val );
         }
       });
       
       _( h2c ).each(function ( cards, val ) {
         if ( cards.length === 3 ) {
-          h2c_3 = val;
+          h2c_3 = UTIL.getCardOrderIndex( val );
         }
         else if ( cards.length === 2 ) {
-          h2c_2 = val;
+          h2c_2 = UTIL.getCardOrderIndex( val );
         }
       });
 
