@@ -28,7 +28,7 @@ Create a hand:
 
 Then run the `identify` function on a hand, and get it's value:
 
-    var result = royal_flush.identity();
+    var result = royal_flush.identify();
     
     // this makes: 
     {
